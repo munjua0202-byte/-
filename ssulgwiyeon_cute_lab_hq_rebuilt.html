@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSULGWIYEON 🎀</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0; font-family:Arial,sans-serif;
+ background:linear-gradient(135deg,#ffe2ef,#eee3ff);
+ color:#8d426c;text-align:center;min-height:100vh;
+}
+header{padding:25px 15px 10px}
+h1{font-size:30px;margin:8px}
+p{line-height:1.7}
+main{max-width:600px;margin:auto;padding:15px}
+.panel{
+ background:#ffffffc9;border-radius:25px;
+ padding:25px;margin:15px 0;
+ box-shadow:0 5px 20px #b77b9b20;
+}
+button{
+ border:0;border-radius:18px;padding:14px 20px;
+ margin:6px;background:#ed9dc3;color:white;
+ font-size:16px;font-weight:bold;cursor:pointer;
+ font-family:inherit;
+}
+button:hover{filter:brightness(.96);transform:scale(1.02)}
+button.small{padding:9px 14px;font-size:14px;border-radius:14px}
+button.soft{background:#f6d3e5;color:#8d426c}
+input,textarea{
+ padding:12px;border-radius:12px;border:1px solid pink;
+ font-family:inherit;font-size:15px;color:#8d426c;
+}
+.result{font-size:19px;font-weight:bold;min-height:55px}
+.hidden{display:none !important}
+.hint{font-size:13px;opacity:.75}
+footer{padding:30px;font-size:13px}
+
+/* ---------- 토끼 마스코트 ---------- */
+.mascot{display:inline-flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.bubble{
+ background:white;border-radius:18px;padding:10px 16px;
+ font-size:15px;font-weight:bold;position:relative;
+ box-shadow:0 3px 12px #b77b9b30;margin-bottom:14px;
+ min-width:150px;max-width:280px;animation:pop .35s;
+}
+.bubble:after{
+ content:"";position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);
+ border:10px solid transparent;border-top-color:white;border-bottom:0;
+}
+.bunny{position:relative;width:130px;height:150px;animation:bob 2.4s ease-in-out infinite}
+.ear{
+ position:absolute;top:0;width:30px;height:72px;background:white;
+ border:3px solid #f2b8d3;border-radius:50% 50% 45% 45%;
+}
+.ear:before{content:"";position:absolute;inset:10px 7px 14px;background:#ffd1e4;border-radius:50%}
+.ear.l{left:28px;transform-origin:bottom center;transform:rotate(-12deg);animation:earL 3s ease-in-out infinite}
+.ear.r{right:28px;transform-origin:bottom center;transform:rotate(12deg);animation:earR 3s ease-in-out infinite}
+.head{
+ position:absolute;bottom:0;left:5px;width:120px;height:98px;background:white;
+ border:3px solid #f2b8d3;border-radius:50%;
+}
+.eyes{position:absolute;top:30px;left:0;right:0;display:flex;justify-content:center;gap:34px;font-size:20px;color:#5b3550;font-weight:bold;line-height:1}
+.cheek{position:absolute;top:50px;width:20px;height:11px;background:#ffb3d1;border-radius:50%;opacity:.8}
+.cheek.l{left:14px}.cheek.r{right:14px}
+.mouth{position:absolute;top:50px;left:0;right:0;font-size:18px;color:#5b3550;line-height:1}
+.paw{
+ position:absolute;right:-14px;bottom:20px;width:30px;height:30px;background:white;
+ border:3px solid #f2b8d3;border-radius:50%;transform-origin:bottom left;
+ animation:wave 1.2s ease-in-out infinite;
+}
+.bow{position:absolute;top:54px;left:20px;font-size:26px;transform:rotate(-20deg)}
+.bunny.jump{animation:jump .5s}
+@keyframes bob{50%{transform:translateY(-5px)}}
+@keyframes earL{0%,80%,100%{transform:rotate(-12deg)}88%{transform:rotate(-25deg)}}
+@keyframes earR{0%,70%,100%{transform:rotate(12deg)}78%{transform:rotate(25deg)}}
+@keyframes wave{0%,100%{transform:rotate(0)}50%{transform:rotate(-35deg)}}
+@keyframes jump{30%{transform:translateY(-22px) scale(1.05)}60%{transform:translateY(0) scale(.95,1.05)}}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ---------- 방 꾸미기 ---------- */
+.room{
+ position:relative;width:100%;aspect-ratio:4/3;border-radius:20px;overflow:hidden;
+ border:3px solid #f2b8d3;touch-action:none;margin:10px 0;
+}
+.room .wall{position:absolute;inset:0 0 35% 0;transition:background .3s}
+.room .floor{position:absolute;inset:65% 0 0 0;background:repeating-linear-gradient(90deg,#e9c9a8 0 40px,#e2bf9b 40px 80px)}
+.room .window{position:absolute;top:10%;left:38%;width:24%;height:30%;background:#cfeaff;border:5px solid white;border-radius:10px}
+.room .window:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:5px;background:white;transform:translateX(-50%)}
+.item{
+ position:absolute;font-size:44px;line-height:1;transform:translate(-50%,-50%);
+ cursor:grab;user-select:none;touch-action:none;filter:drop-shadow(0 3px 2px #0002);
+}
+.item.dragging{cursor:grabbing;transform:translate(-50%,-50%) scale(1.15);z-index:99}
+.palette button{font-size:24px;padding:8px 12px;margin:4px;background:white;border:2px solid #f6d3e5}
+.walls button{width:34px;height:34px;padding:0;border-radius:50%;border:3px solid white;box-shadow:0 1px 5px #0002}
+
+/* ---------- 랜덤 뽑기 ---------- */
+.machine{width:220px;margin:10px auto;position:relative}
+.dome{
+ width:200px;height:170px;margin:auto;border-radius:100px 100px 20px 20px;
+ background:#ffffffaa;border:5px solid #f2b8d3;position:relative;overflow:hidden;
+}
+.dome span{position:absolute;font-size:34px}
+.base{width:210px;height:90px;margin:-6px auto 0;background:#ed9dc3;border-radius:18px;position:relative}
+.knob{
+ position:absolute;left:24px;top:22px;width:46px;height:46px;border-radius:50%;
+ background:white;border:4px solid #f6d3e5;display:flex;align-items:center;justify-content:center;font-size:22px;
+}
+.knob.spin{animation:spin .7s}
+.slot{position:absolute;right:28px;top:26px;width:60px;height:40px;background:#8d426c;border-radius:10px}
+.machine.shake .dome{animation:shake .6s}
+.capsule{font-size:60px;margin:10px;display:inline-block}
+.capsule.drop{animation:drop .6s}
+.rarity{display:inline-block;padding:3px 10px;border-radius:10px;font-size:13px;color:white;margin-left:6px}
+.collection{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;font-size:26px;min-height:34px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{20%{transform:rotate(-4deg)}40%{transform:rotate(4deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(2deg)}}
+@keyframes drop{from{transform:translateY(-60px) scale(.4);opacity:0}70%{transform:translateY(8px)}to{transform:none;opacity:1}}
+
+/* ---------- 비밀 일기장 ---------- */
+.diary textarea{width:100%;min-height:160px;resize:vertical;background:repeating-linear-gradient(#fff 0 29px,#fbe0ec 29px 30px);line-height:30px;padding:6px 12px}
+.entries{list-style:none;padding:0;margin:10px 0;text-align:left}
+.entries li{
+ background:white;border-radius:14px;padding:10px 14px;margin:6px 0;cursor:pointer;
+ border:2px solid #f6d3e5;
+}
+.entries li:hover{border-color:#ed9dc3}
+.entries .d{font-weight:bold}
+.entries .s{font-size:13px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status{font-size:14px;min-height:22px;margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+ <div class="mascot" id="mascot" onclick="pokeBunny()" title="토끼를 눌러보세요!">
+  <div class="bubble" id="bubble">안녕! 나는 쓸귀연 토끼야 👋</div>
+  <div class="bunny" id="bunny">
+   <div class="ear l"></div><div class="ear r"></div>
+   <div class="head">
+    <div class="eyes"><span id="eyeL">●</span><span id="eyeR">●</span></div>
+    <div class="cheek l"></div><div class="cheek r"></div>
+    <div class="mouth" id="mouth">ω</div>
+   </div>
+   <div class="bow">🎀</div>
+   <div class="paw"></div>
+  </div>
+ </div>
+ <h1>SSULGWIYEON</h1>
+ <p>쓸데없지만 귀여운 연구소<br>우리만의 작은 인터넷 세상 💗</p>
+</header>
+
+<main>
+ <section class="panel" id="hq">
+  <h2>🏡 연구소 본부</h2>
+  <p>어서 와요! 오늘도 귀여운 하루 보내기!</p>
+  <button onclick="show('fortune')">🔮 운세 자판기</button>
+  <button onclick="show('secret')">🤫 비밀 연구소</button>
+  <button onclick="show('treasure')">🎁 보물상자</button>
+  <button onclick="show('cute')">📏 귀여움 측정기</button>
+  <button onclick="show('room')">🛏️ 나만의 방 꾸미기</button>
+  <button onclick="show('gacha')">🎰 랜덤 뽑기 기계</button>
+  <button onclick="show('diary')">📔 비밀 일기장</button>
+  <button onclick="show('about')">📖 연구소 소개</button>
+  <button onclick="show('links')">🔗 연구소 링크 보관함</button>
+ </section>
+
+ <section class="panel hidden" id="fortune">
+  <h2>🔮 오늘의 운세</h2>
+  <div class="result" id="fortuneResult">운세를 뽑아보세요!</div>
+  <button onclick="drawFortune()">✨ 운세 뽑기</button>
+ </section>
+
+ <section class="panel hidden" id="secret">
+  <h2>🤫 비밀 연구소</h2>
+  <p>비밀 암호는 무엇일까요?</p>
+  <input id="password" placeholder="암호 입력하기">
+  <button onclick="unlock()">문 열기 🔑</button>
+  <div class="result" id="secretResult"></div>
+ </section>
+
+ <section class="panel hidden" id="treasure">
+  <h2>🎁 행운의 보물상자</h2>
+  <div class="result" id="treasureResult">상자를 열어보세요!</div>
+  <button onclick="openTreasure()">상자 열기 💝</button>
+ </section>
+
+ <section class="panel hidden" id="cute">
+  <h2>📏 귀여움 측정기</h2>
+  <p>이름을 입력하면 오늘의 귀여움 지수를 측정해 드려요!</p>
+  <input id="cuteName" placeholder="이름 입력하기">
+  <button onclick="measureCute()">측정하기 🔍</button>
+  <div class="result" id="cuteResult"></div>
+ </section>
+
+ <section class="panel hidden" id="room">
+  <h2>🛏️ 나만의 방 꾸미기</h2>
+  <p class="hint">아이템을 눌러 방에 넣고, 끌어서 옮겨요.<br>두 번 톡톡 누르면 빼낼 수 있어요!</p>
+  <div class="palette" id="palette"></div>
+  <div class="room" id="roomBox">
+   <div class="wall" id="wall"></div>
+   <div class="window"></div>
+   <div class="floor"></div>
+  </div>
+  <div class="walls" id="walls">벽지: </div>
+  <button class="small soft" onclick="clearRoom()">🧹 비우기</button>
+  <button class="small" onclick="saveRoom()">💾 방 저장하기</button>
+  <div class="status" id="roomStatus"></div>
+ </section>
+
+ <section class="panel hidden" id="gacha">
+  <h2>🎰 랜덤 뽑기 기계</h2>
+  <div class="machine" id="machine">
+   <div class="dome" id="dome"></div>
+   <div class="base"><div class="knob" id="knob">✦</div><div class="slot"></div></div>
+  </div>
+  <button onclick="pullGacha()">🪙 동전 넣고 돌리기!</button>
+  <div class="result" id="gachaResult">무엇이 나올까요?</div>
+  <p class="hint">이번에 뽑은 친구들 (<span id="gachaCount">0</span>)</p>
+  <div class="collection" id="collection"></div>
+ </section>
+
+ <section class="panel hidden diary" id="diary">
+  <h2>📔 비밀 일기장</h2>
+  <p class="hint">이 기기에서만 볼 수 있는 나만의 일기장이에요 🔒</p>
+  <input type="date" id="diaryDate" onchange="loadDiaryDate()">
+  <textarea id="diaryText" placeholder="오늘은 어떤 하루였나요?" maxlength="10000"></textarea>
+  <button class="small" onclick="saveDiary()">💾 저장하기</button>
+  <button class="small soft" onclick="deleteDiary()">🗑️ 지우기</button>
+  <div class="status" id="diaryStatus"></div>
+  <h3>📚 지난 일기</h3>
+  <ul class="entries" id="entries"><li class="hint">아직 쓴 일기가 없어요.</li></ul>
+ </section>
+
+ <section class="panel hidden" id="links">
+  <h2>🔗 연구소 링크 보관함</h2>
+  <p class="hint">연구소 링크 9개를 저장해 두고 언제든 접속할 수 있어요. 원래 링크가 확인되지 않은 칸은 직접 입력해 주세요.</p>
+  <div id="linkShelf" class="entries"></div>
+  <button class="small" onclick="exportLabLinks()">📦 링크 백업하기</button>
+  <button class="small soft" onclick="importLabLinks()">📥 백업 불러오기</button>
+  <input type="file" id="linkImportFile" accept=".json,application/json" hidden onchange="handleLabLinkImport(event)">
+ </section>
+
+ <section class="panel hidden" id="about">
+  <h2>📖 연구소 소개</h2>
+  <p>세상에서 가장 쓸데없지만 귀여운 것들을<br>
+  연구하고 만드는 공간입니다.</p>
+  <p>연구소장: 당신 🐰<br>개발팀장: ChatGPT 🤖</p>
+ </section>
+
+ <button id="homeBtn" class="hidden" onclick="home()">🏡 본부로 돌아가기</button>
+</main>
+
+<footer>© 2026 SSULGWIYEON · 행복 연구소 💗</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---------- 화면 전환 ---------- */
+function show(id){
+ document.querySelectorAll('main .panel').forEach(el=>el.classList.add('hidden'));
+ $(id).classList.remove('hidden');
+ $('homeBtn').classList.toggle('hidden',id==='hq');
+ window.scrollTo({top:0,behavior:'smooth'});
+ if(id==='room') loadRoom();
+ if(id==='diary') loadDiaryList();
+ if(id==='links') renderLabLinks();
+}
+function home(){show('hq')}
+
+/* ---------- 내 기기 전용 키 ---------- */
+function ownerKey(){
+ let k=localStorage.getItem('ssulgwiyeon-key');
+ if(!k){
+  k=(crypto.randomUUID?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join(''));
+  localStorage.setItem('ssulgwiyeon-key',k);
+ }
+ return k;
+}
+async function api(path,opts={}){
+ const res=await fetch(path,{...opts,headers:{'Content-Type':'application/json','X-Owner-Key':ownerKey(),...(opts.headers||{})}});
+ if(!res.ok) throw new Error(await res.text());
+ return res.json();
+}
+
+/* ---------- 토끼 마스코트 ---------- */
+const moods=[
+ {l:'^',r:'^',m:'▽',t:'헤헤 간지러워~ 🤭'},
+ {l:'♥',r:'♥',m:'ω',t:'너무 좋아! 사랑해 💗'},
+ {l:'●',r:'−',m:'ω',t:'찡긋~ 비밀이야 😉'},
+ {l:'◉',r:'◉',m:'o',t:'앗! 깜짝이야! 😳'},
+ {l:'−',r:'−',m:'з',t:'음냐음냐... 졸려 💤'},
+ {l:'>',r:'<',m:'▽',t:'오늘도 화이팅이야! 💪'},
+ {l:'●',r:'●',m:'ω',t:'당근 하나만 줄래? 🥕'},
+ {l:'T',r:'T',m:'﹏',t:'너무 자주 누르면 부끄러워…'},
+ {l:'★',r:'★',m:'▽',t:'반짝반짝 귀여움 충전 완료! ✨'}
+];
+let lastMood=-1;
+function pokeBunny(){
+ let i;do{i=Math.floor(Math.random()*moods.length)}while(i===lastMood);
+ lastMood=i;const m=moods[i];
+ $('eyeL').textContent=m.l;$('eyeR').textContent=m.r;$('mouth').textContent=m.m;
+ const b=$('bubble');b.textContent=m.t;b.style.animation='none';b.offsetHeight;b.style.animation='';
+ const bn=$('bunny');bn.classList.remove('jump');bn.offsetHeight;bn.classList.add('jump');
+}
+$('bunny').addEventListener('animationend',e=>{if(e.animationName==='jump')$('bunny').classList.remove('jump')});
+(function greet(){
+ const h=new Date().getHours();
+ $('bubble').textContent=h<6?'이 시간까지 안 잤어? 🌙':h<12?'좋은 아침이야! ☀️ 날 눌러봐!':h<18?'안녕! 반가워 👋 날 눌러봐!':'좋은 저녁이야! 🌆 날 눌러봐!';
+})();
+
+/* ---------- 운세 / 비밀 / 보물 / 귀여움 ---------- */
+const fortunes=[
+ "🍀 오늘은 행운이 찾아올 거예요!",
+ "🐰 귀여움 지수 999%!",
+ "🍰 맛있는 간식이 기다리고 있어요!",
+ "💌 누군가 당신을 생각하고 있어요!",
+ "🌟 오늘은 당신이 주인공!",
+ "🐸 개구리처럼 폴짝! 신나는 하루!"
+];
+function drawFortune(){$('fortuneResult').textContent=pick(fortunes)}
+function unlock(){
+ const p=$('password').value.trim();
+ $('secretResult').textContent=p.replace(/\s/g,'').toLowerCase()==='ssulgwiyeon'
+  ?'🎉 비밀 문이 열렸어요! 환영합니다!'
+  :'🙊 암호가 틀렸어요! 힌트: 연구소 이름의 영문';
+}
+function openTreasure(){
+ $('treasureResult').textContent=pick([
+  "💗 오늘도 충분히 잘하고 있어요!",
+  "🍀 행운의 기운을 선물합니다!",
+  "🐰 귀여움 쿠폰 1장 획득!",
+  "🌷 행복한 일이 생길 거예요!"
+ ]);
+}
+function measureCute(){
+ const name=$('cuteName').value.trim(),out=$('cuteResult');
+ if(!name){out.textContent='🐰 이름을 먼저 입력해 주세요!';return;}
+ let h=0;for(const c of name+new Date().toDateString())h=(h*31+c.charCodeAt(0))%100000;
+ const comments=["심장 폭행 주의보 발령! 💘","주변 사람들이 녹아내리는 중... 🫠","토끼도 인정한 귀여움! 🐰","연구소 역사상 최고 기록 경신! 🏆","귀여움 과다로 측정기가 고장날 뻔! 🔧"];
+ out.textContent=`💗 ${name}님의 오늘 귀여움 지수: ${100+(h%900)}%! `+comments[h%comments.length];
+}
+
+/* ---------- 나만의 방 꾸미기 ---------- */
+const furniture=['🛏️','🧸','💡','🖼️','🪴','🪞','🛋️','📚','🧁','🐰','🎀','🌙','⭐','🕯️','🎮','🐱'];
+const wallColors={pink:'#ffd9ea',lilac:'#e6dcff',mint:'#d6f5e8',cream:'#fff3d6',sky:'#d9efff'};
+let roomItems=[],roomWall='pink',roomLoaded=false,lastTap={};
+
+furniture.forEach(e=>{
+ const b=document.createElement('button');b.textContent=e;
+ b.onclick=()=>{roomItems.push({e,x:20+Math.random()*60,y:45+Math.random()*35});renderRoom()};
+ $('palette').appendChild(b);
+});
+Object.entries(wallColors).forEach(([k,c])=>{
+ const b=document.createElement('button');b.style.background=c;b.title=k;
+ b.onclick=()=>{roomWall=k;renderRoom()};
+ $('walls').appendChild(b);
+});
+
+function renderRoom(){
+ const box=$('roomBox');
+ $('wall').style.background=`linear-gradient(${wallColors[roomWall]||wallColors.pink},#fff)`;
+ box.querySelectorAll('.item').forEach(el=>el.remove());
+ roomItems.forEach((it,idx)=>{
+  const el=document.createElement('div');
+  el.className='item';el.textContent=it.e;
+  el.style.left=it.x+'%';el.style.top=it.y+'%';
+  attachDrag(el,idx);
+  box.appendChild(el);
+ });
+}
+function attachDrag(el,idx){
+ el.addEventListener('pointerdown',ev=>{
+  ev.preventDefault();
+  const now=Date.now(),cur=roomItems[idx];
+  if(lastTap.item===cur&&now-lastTap.t<350){lastTap={};roomItems.splice(idx,1);renderRoom();return;}
+  lastTap={item:cur,t:now};
+  el.setPointerCapture(ev.pointerId);el.classList.add('dragging');
+  const rect=$('roomBox').getBoundingClientRect();
+  const move=e=>{
+   const it=roomItems[idx];
+   it.x=Math.max(3,Math.min(97,(e.clientX-rect.left)/rect.width*100));
+   it.y=Math.max(5,Math.min(95,(e.clientY-rect.top)/rect.height*100));
+   el.style.left=it.x+'%';el.style.top=it.y+'%';
+  };
+  const up=()=>{
+   el.classList.remove('dragging');
+   el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);
+   // 나중에 놓은 아이템이 앞으로 오도록 맨 뒤로 이동
+   const [it]=roomItems.splice(idx,1);roomItems.push(it);renderRoom();
+  };
+  el.addEventListener('pointermove',move);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+ });
+}
+function clearRoom(){roomItems=[];renderRoom()}
+async function loadRoom(){
+ renderRoom();
+ if(roomLoaded)return;
+ $('roomStatus').textContent='방을 불러오는 중... 🐰';
+ try{
+  const {layout}=await api('/api/room');
+  if(layout){roomItems=layout.items||[];roomWall=layout.wall||'pink';}
+  roomLoaded=true;renderRoom();$('roomStatus').textContent='';
+ }catch{$('roomStatus').textContent='😢 방을 불러오지 못했어요.'}
+}
+async function saveRoom(){
+ $('roomStatus').textContent='저장 중...';
+ try{
+  await api('/api/room',{method:'PUT',body:JSON.stringify({layout:{wall:roomWall,items:roomItems}})});
+  $('roomStatus').textContent='✅ 방이 저장됐어요! 다음에 와도 그대로예요.';
+ }catch{$('roomStatus').textContent='😢 저장에 실패했어요. 다시 시도해 주세요.'}
+}
+
+/* ---------- 랜덤 뽑기 기계 ---------- */
+const prizes=[
+ {e:'🐰',n:'토끼 인형',r:0},{e:'🐻',n:'곰돌이',r:0},{e:'🐥',n:'병아리',r:0},{e:'🐸',n:'개구리',r:0},
+ {e:'🍓',n:'딸기 키링',r:0},{e:'🧁',n:'컵케이크',r:0},{e:'🎀',n:'리본 핀',r:0},{e:'🍬',n:'사탕',r:0},
+ {e:'🐱',n:'고양이',r:1},{e:'🦄',n:'유니콘',r:1},{e:'🌈',n:'무지개 스티커',r:1},{e:'💎',n:'반짝이 보석',r:1},
+ {e:'👑',n:'황금 왕관',r:2},{e:'🐉',n:'아기 용',r:2}
+];
+const rarities=[{n:'일반',c:'#c8a2b8',w:70},{n:'레어',c:'#9b7bff',w:25},{n:'전설',c:'#ffb020',w:5}];
+let pulled=[],pulling=false;
+(function fillDome(){
+ const d=$('dome');
+ ['🔴','🟡','🟢','🔵','🟣','🟠','🩷','⚪','🔴','🟣','🟡','🩷'].forEach((c,i)=>{
+  const s=document.createElement('span');s.textContent=c;
+  s.style.left=(8+(i%4)*23+Math.random()*6)+'%';s.style.top=(30+Math.floor(i/4)*22+Math.random()*6)+'%';
+  d.appendChild(s);
+ });
+})();
+function pullGacha(){
+ if(pulling)return;pulling=true;
+ const m=$('machine'),k=$('knob');
+ m.classList.add('shake');k.classList.add('spin');
+ $('gachaResult').textContent='두근두근... 🥁';
+ setTimeout(()=>{
+  m.classList.remove('shake');k.classList.remove('spin');
+  let roll=Math.random()*100,r=0;
+  for(;r<rarities.length-1;r++){if(roll<rarities[r].w)break;roll-=rarities[r].w;}
+  const p=pick(prizes.filter(x=>x.r===r)),rar=rarities[r];
+  $('gachaResult').innerHTML=`<span class="capsule drop">${p.e}</span><br>${p.n} 등장!<span class="rarity" style="background:${rar.c}">${rar.n}</span>`
+   +(r===2?'<br>🎉 대박! 전설 등급이에요!':'');
+  pulled.push(p.e);
+  $('gachaCount').textContent=pulled.length;
+  $('collection').textContent=pulled.join(' ');
+  pulling=false;
+ },700);
+}
+
+/* ---------- 비밀 일기장 ---------- */
+let diaryEntries=[];
+function today(){
+ const d=new Date();
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+$('diaryDate').value=today();
+function prettyDate(s){const [y,m,d]=s.split('-');return `${y}년 ${+m}월 ${+d}일`}
+function renderEntries(){
+ const ul=$('entries');ul.innerHTML='';
+ if(!diaryEntries.length){ul.innerHTML='<li class="hint">아직 쓴 일기가 없어요.</li>';return;}
+ diaryEntries.forEach(en=>{
+  const li=document.createElement('li');
+  const d=document.createElement('div');d.className='d';d.textContent='📅 '+prettyDate(en.date);
+  const s=document.createElement('div');s.className='s';s.textContent=en.content||'(빈 일기)';
+  li.append(d,s);
+  li.onclick=()=>{$('diaryDate').value=en.date;loadDiaryDate();window.scrollTo({top:$('diary').offsetTop,behavior:'smooth'})};
+  ul.appendChild(li);
+ });
+}
+async function loadDiaryList(){
+ $('diaryStatus').textContent='일기장을 여는 중... 📖';
+ try{
+  diaryEntries=await api('/api/diary');
+  renderEntries();loadDiaryDate();$('diaryStatus').textContent='';
+ }catch{$('diaryStatus').textContent='😢 일기장을 불러오지 못했어요.'}
+}
+function loadDiaryDate(){
+ const en=diaryEntries.find(e=>e.date===$('diaryDate').value);
+ $('diaryText').value=en?en.content:'';
+}
+async function saveDiary(){
+ const date=$('diaryDate').value,content=$('diaryText').value;
+ if(!date){$('diaryStatus').textContent='📅 날짜를 골라 주세요!';return;}
+ if(!content.trim()){$('diaryStatus').textContent='✏️ 내용을 써 주세요!';return;}
+ $('diaryStatus').textContent='저장 중...';
+ try{
+  await api('/api/diary/'+date,{method:'PUT',body:JSON.stringify({content})});
+  const i=diaryEntries.findIndex(e=>e.date===date);
+  if(i>=0)diaryEntries[i].content=content;else diaryEntries.push({date,content});
+  diaryEntries.sort((a,b)=>b.date.localeCompare(a.date));
+  renderEntries();
+  $('diaryStatus').textContent='✅ '+prettyDate(date)+' 일기를 저장했어요!';
+ }catch{$('diaryStatus').textContent='😢 저장에 실패했어요. 다시 시도해 주세요.'}
+}
+async function deleteDiary(){
+ const date=$('diaryDate').value;
+ if(!diaryEntries.some(e=>e.date===date)){$('diaryStatus').textContent='이 날짜에는 저장된 일기가 없어요.';return;}
+ if(!confirm(prettyDate(date)+' 일기를 지울까요?'))return;
+ try{
+  await api('/api/diary/'+date,{method:'DELETE'});
+  diaryEntries=diaryEntries.filter(e=>e.date!==date);
+  renderEntries();$('diaryText').value='';
+  $('diaryStatus').textContent='🗑️ 일기를 지웠어요.';
+ }catch{$('diaryStatus').textContent='😢 삭제에 실패했어요.'}
+}
+
+/* ---------- 9번째 기능: 링크 보관함 ---------- */
+const LINK_KEY='ssulgwiyeon-lab-links-v1';
+const defaultLabLinks=Array.from({length:9},(_,i)=>({name:`연구소 링크 ${i+1}`,url:''})) ;
+function labLinks(){try{const stored=JSON.parse(localStorage.getItem(LINK_KEY)||'null');return Array.isArray(stored)&&stored.length===9?stored:defaultLabLinks.slice()}catch{return defaultLabLinks.slice()}}
+function renderLabLinks(){const box=$('linkShelf');if(!box)return;const list=labLinks();box.innerHTML='';list.forEach((item,i)=>{const row=document.createElement('li');row.style.cssText='display:flex;flex-direction:column;gap:8px;text-align:left;padding:12px;margin:9px 0;background:#fff8fc;border-radius:14px';const title=document.createElement('strong');title.textContent=`${i+1}. ${item.name||`연구소 링크 ${i+1}`}`;const input=document.createElement('input');input.type='url';input.placeholder='https://사이트 주소';input.value=item.url||'';input.setAttribute('aria-label',`${i+1}번 링크 주소`);input.style.cssText='width:100%;padding:10px;border:1px solid #f0cddd;border-radius:10px';const buttons=document.createElement('div');buttons.style.cssText='display:flex;gap:8px;flex-wrap:wrap';const save=document.createElement('button');save.className='small';save.textContent='💾 저장';save.onclick=()=>{const u=cleanLabUrl(input.value);if(u===null){alert('주소는 http:// 또는 https:// 로 시작하는 유효한 URL을 입력해 주세요.');return}const now=labLinks();now[i]={name:item.name||`연구소 링크 ${i+1}`,url:u};localStorage.setItem(LINK_KEY,JSON.stringify(now));renderLabLinks();};const open=document.createElement('a');open.className='small soft';open.textContent=item.url?'🔗 접속':'주소 입력 후 접속';if(item.url){open.href=item.url;open.target='_blank';open.rel='noopener noreferrer'}else{open.href='#';open.onclick=e=>{e.preventDefault();alert('먼저 링크를 입력하고 저장해 주세요.')}}buttons.append(save,open);row.append(title,input,buttons);box.append(row)})}
+function cleanLabUrl(value){let v=(value||'').trim();if(!v)return '';if(!/^https?:\/\//i.test(v))v='https://'+v;try{const u=new URL(v);return ['https:','http:'].includes(u.protocol)?u.href:null}catch{return null}}
+function exportLabLinks(){const data={format:'ssulgwiyeon-links-v1',links:labLinks(),exportedAt:new Date().toISOString()};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ssulgwiyeon-links-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function importLabLinks(){$('linkImportFile').click()}
+function handleLabLinkImport(e){const f=e.target.files?.[0];if(!f)return;f.text().then(raw=>{const d=JSON.parse(raw),arr=Array.isArray(d)?d:d.links;if(!Array.isArray(arr))throw new Error('invalid');const current=labLinks();arr.slice(0,9).forEach((x,i)=>{if(x&&typeof x.url==='string')current[i]={name:typeof x.name==='string'?x.name:`연구소 링크 ${i+1}`,url:cleanLabUrl(x.url)||''}});localStorage.setItem(LINK_KEY,JSON.stringify(current));renderLabLinks();alert('링크 백업을 불러왔어요!')}).catch(()=>alert('파일 형식이 올바르지 않아요.'));e.target.value=''}
+
+</script>
+</body>
+</html>
